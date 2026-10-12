@@ -28,7 +28,8 @@ videoSnap/
 │   ├── base.html        # Main layout with navbar & footer
 │   ├── index.html       # Landing page
 │   ├── create.html      # Video upload & reel creation form
-│   └── gallery.html     # Reel showcase gallery
+│   ├── gallery.html     # Reel showcase gallery
+│   └── 404.html         # Custom 404 error page
 ├── static/              # Static web assets
 │   ├── css/             # Custom stylesheets (style.css, create.css, gallery.css)
 │   ├── songs/           # Background music audio assets (.mp3)
@@ -104,6 +105,7 @@ By default, the application runs in debug mode and is accessible at:
 | `/` | `GET` | Home landing page with feature cards and reel showcase. |
 | `/create` | `GET`, `POST` | Upload video clips, enter voiceover text, and submit creation job. |
 | `/gallery` | `GET` | Showcase gallery displaying generated video reels. |
+| *Any unmatched URL* | `*` | Custom 404 page (`404.html`) with navigation back to Home/Create. |
 
 ---
 

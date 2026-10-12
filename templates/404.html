@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}404 - Page Not Found | VidSnapAI{% endblock %}
+
+{% block content %}
+<section class="not-found-section py-5 text-center">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="not-found-card p-5 shadow-sm rounded-4 bg-white">
+                    <div class="not-found-code display-1 fw-bold text-gradient mb-3" style="background: linear-gradient(135deg, #405DE6, #833AB4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        404
+                    </div>
+                    <div class="not-found-icon mb-4">
+                        <i class="fas fa-video-slash fa-3x" style="color: #833AB4;"></i>
+                    </div>
+                    <h2 class="h3 fw-bold mb-3">Snap! Page Not Found</h2>
+                    <p class="text-muted mb-4">
+                        The page or reel you are looking for doesn't exist, has been removed, or the link might be broken.
+                    </p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="/" class="btn btn-primary px-4 py-2 rounded-pill" style="background: linear-gradient(to right, #405DE6, #5851DB); border: none;">
+                            <i class="fas fa-home me-2"></i>Back to Home
+                        </a>
+                        <a href="/create" class="btn btn-outline-secondary px-4 py-2 rounded-pill">
+                            <i class="fas fa-plus-circle me-2"></i>Create a Reel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
