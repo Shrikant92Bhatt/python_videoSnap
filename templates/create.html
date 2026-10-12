@@ -13,6 +13,13 @@
             <h1 class="upload-title">Create Your Reel</h1>
             <p class="upload-instructions">Upload your video files to create an amazing reel. You can upload multiple files.</p>
             
+            {% if alert %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ alert }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+            
             <form action="/create" enctype="multipart/form-data" method="post" class="dropzone" id="myDropzone" >
                 <div class="fallback">
                     <div id="fileInputs">
