@@ -28,7 +28,7 @@
                 <div class="fallback">
                     <div id="fileInputs">
                         <div class="file-input-group">
-                            <input name="file1" type="file" class="file-input" />
+                            <input name="file1" type="file" class="file-input" required />
                             <input name="uuid" type="hidden" value="{{myid}}">
                             <button type="button" class="remove-file-btn" onclick="removeFileInput(this)" disabled>×</button>
                         </div>
@@ -51,6 +51,11 @@
 
 {% block extra_js %}
 <script>
+    // Prevent browser form resubmission on reload
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+
     let fileCounter = 2; // Start from 2 since we already have file1
 
     function addFileInput() {

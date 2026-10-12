@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'user_uploads')
-ALLOWED_EXTENSIONS = {'mp4', 'mov', 'avi', 'mkv', 'webm', 'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'videosnap-secret-key-123')
@@ -36,9 +36,9 @@ def create():
 
         text_content = request.form.get("text", "").strip()
 
-        # Check if user submitted without any files or text
-        if not files_to_save and not text_content:
-            flash("Please upload at least one video file or enter text before submitting.", "danger")
+        # Ensure at least one file is actually uploaded
+        if not files_to_save:
+            flash("Please upload at least one video file before submitting.", "danger")
             return redirect(url_for("create"))
 
         # Create target directory for this uuid inside user_uploads
