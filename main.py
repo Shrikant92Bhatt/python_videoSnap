@@ -1,12 +1,13 @@
 import os
 import uuid
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'user_uploads')
 ALLOWED_EXTENSIONS = {'mp4', 'mov', 'avi', 'mkv', 'webm', 'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'videosnap-secret-key-123')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def allowed_file(filename):
@@ -18,34 +19,44 @@ def home():
 
 @app.route("/create", methods=["GET", "POST"])
 def create():
-    uniqueId = uuid.uuid1()
     if request.method == "POST":
         rec_uuid = request.form.get("uuid")
         if not rec_uuid:
-            rec_uuid = str(uniqueId)
+            rec_uuid = str(uuid.uuid1())
 
-        # Create target directory for this uuid inside user_uploads
-        target_folder = os.path.join(app.config['UPLOAD_FOLDER'], str(rec_uuid))
-        os.makedirs(target_folder, exist_ok=True)
-
-        # Save all uploaded files using secure_filename
+        # Collect and validate files
+        files_to_save = []
         for key in request.files:
             file_list = request.files.getlist(key)
             for file in file_list:
                 if file and file.filename != "":
                     filename = secure_filename(file.filename)
                     if filename:
-                        file.save(os.path.join(target_folder, filename))
+                        files_to_save.append((file, filename))
+
+        text_content = request.form.get("text", "").strip()
+
+        # Check if user submitted without any files or text
+        if not files_to_save and not text_content:
+            flash("Please upload at least one video file or enter text before submitting.", "danger")
+            return redirect(url_for("create"))
+
+        # Create target directory for this uuid inside user_uploads
+        target_folder = os.path.join(app.config['UPLOAD_FOLDER'], str(rec_uuid))
+        os.makedirs(target_folder, exist_ok=True)
+
+        # Save all uploaded files using secure_filename
+        for file, filename in files_to_save:
+            file.save(os.path.join(target_folder, filename))
 
         # Save user text input as text.txt
-        text_content = request.form.get("text", "")
         with open(os.path.join(target_folder, "text.txt"), "w", encoding="utf-8") as f:
             f.write(text_content)
 
-        # Refresh uniqueId for the next submission
-        uniqueId = uuid.uuid1()
-        return render_template("create.html", myid=uniqueId, uuid=uniqueId, alert="Files and text uploaded successfully!")
+        flash("Files and text uploaded successfully!", "success")
+        return redirect(url_for("create"))
 
+    uniqueId = uuid.uuid1()
     return render_template("create.html", myid=uniqueId, uuid=uniqueId)
 
 @app.route("/gallery")
