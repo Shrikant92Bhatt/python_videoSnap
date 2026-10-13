@@ -1,58 +1,194 @@
 {% extends "base.html" %}
 
-{% block title %}Gallery - AI Reel Generator{% endblock %}
+{% block title %}Reel Gallery - VidSnapAI{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/gallery.css') }}">
 {% endblock %}
 
 {% block content %}
-<div class="container gallery-container">
-    <h1 class="gallery-title">Reel Gallery</h1>
-    <div class="gallery-grid">
-        <!-- Example reels - these would be populated dynamically in a real application -->
-        <div class="gallery-item">
-            <div class="reel-card">
-                <div class="reel-thumbnail">
-                    <img src="{{ url_for('static', filename='1.jpg') }}" alt="Reel thumbnail">
-                    <div class="play-overlay">
-                        <i class="fas fa-play"></i>
+<div class="gallery-wrapper">
+    <div class="container gallery-container">
+        <!-- Header -->
+        <div class="gallery-header d-flex flex-wrap justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="gallery-title">Created Reels</h1>
+                <p class="gallery-subtitle">
+                    Explore all your AI-generated vertical video reels
+                    {% if reels %}
+                        <span class="badge bg-primary ms-2">{{ reels|length }} Reel{% if reels|length > 1 %}s{% endif %}</span>
+                    {% endif %}
+                </p>
+            </div>
+            <a href="/create" class="btn btn-primary create-reel-btn">
+                <i class="fas fa-plus me-2"></i>Create New Reel
+            </a>
+        </div>
+
+        {% if not reels %}
+        <!-- Empty State -->
+        <div class="empty-gallery text-center py-5">
+            <div class="empty-icon-wrap mb-4">
+                <i class="fas fa-film fa-4x text-muted"></i>
+            </div>
+            <h3 class="empty-title mb-2">No Reels Created Yet</h3>
+            <p class="empty-desc text-muted mb-4">
+                Upload your photos and audio text prompt to automatically generate your first 9:16 vertical video reel!
+            </p>
+            <a href="/create" class="btn btn-lg btn-primary px-4 py-2">
+                <i class="fas fa-magic me-2"></i>Generate Your First Reel
+            </a>
+        </div>
+        {% else %}
+        <!-- Reels Grid -->
+        <div class="gallery-grid">
+            {% for reel in reels %}
+            <div class="gallery-item" data-reel-id="{{ reel.id }}">
+                <div class="reel-card">
+                    <!-- Engine & Meta Badge Header -->
+                    <div class="reel-card-top d-flex justify-content-between align-items-center">
+                        {% if reel.engine == 'ffmpeg' %}
+                        <span class="engine-badge ffmpeg-badge">
+                            <i class="fas fa-bolt me-1"></i>FFmpeg
+                        </span>
+                        {% elif reel.engine == 'moviepy' %}
+                        <span class="engine-badge moviepy-badge">
+                            <i class="fas fa-clapperboard me-1"></i>MoviePy
+                        </span>
+                        {% else %}
+                        <span class="engine-badge standard-badge">
+                            <i class="fas fa-video me-1"></i>Reel
+                        </span>
+                        {% endif %}
+                        <span class="reel-date text-muted">{{ reel.created_at }}</span>
                     </div>
-                </div>
-                <div class="reel-info">
-                    <h3>Summer Vibes</h3>
-                    <p>Created by: User123</p>
+
+                    <!-- Video Container (9:16 Vertical) -->
+                    <div class="reel-video-container" onclick="togglePlay(this)">
+                        <video class="reel-player" src="{{ reel.video_url }}" preload="metadata" playsinline loop></video>
+                        <div class="play-overlay">
+                            <i class="fas fa-play play-icon"></i>
+                        </div>
+                        <div class="video-badges">
+                            <span class="duration-badge">{{ reel.size_mb }} MB</span>
+                        </div>
+                    </div>
+
+                    <!-- Reel Details & Actions -->
+                    <div class="reel-info">
+                        <div class="reel-caption" title="{{ reel.caption }}">
+                            <i class="fas fa-quote-left quote-icon me-1"></i>{{ reel.caption }}
+                        </div>
+                        
+                        <div class="reel-actions d-flex justify-content-between align-items-center mt-3">
+                            <button type="button" class="btn btn-sm btn-outline-primary play-toggle-btn" onclick="togglePlayBtn(this)">
+                                <i class="fas fa-play me-1"></i>Play
+                            </button>
+                            <div class="action-btn-group d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openFullscreenModal('{{ reel.video_url }}', '{{ reel.caption|escape }}')" title="Fullscreen View">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                                <a href="{{ reel.video_url }}" download="reel_{{ reel.id }}.mp4" class="btn btn-sm btn-success" title="Download Reel">
+                                    <i class="fas fa-download me-1"></i>Download
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        <div class="gallery-item">
-            <div class="reel-card">
-                <div class="reel-thumbnail">
-                    <img src="{{ url_for('static', filename='2.jpg') }}" alt="Reel thumbnail">
-                    <div class="play-overlay">
-                        <i class="fas fa-play"></i>
-                    </div>
-                </div>
-                <div class="reel-info">
-                    <h3>City Lights</h3>
-                    <p>Created by: Creator456</p>
-                </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Fullscreen Reel Modal Player -->
+<div class="modal fade" id="reelModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-reel-dialog">
+        <div class="modal-content reel-modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title text-truncate" id="modalCaption"></h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeReelModal()"></button>
             </div>
-        </div>
-        <div class="gallery-item">
-            <div class="reel-card">
-                <div class="reel-thumbnail">
-                    <img src="{{ url_for('static', filename='3.jpg') }}" alt="Reel thumbnail">
-                    <div class="play-overlay">
-                        <i class="fas fa-play"></i>
-                    </div>
-                </div>
-                <div class="reel-info">
-                    <h3>Nature's Beauty</h3>
-                    <p>Created by: NatureLover</p>
+            <div class="modal-body text-center p-2">
+                <div class="modal-video-wrapper">
+                    <video id="modalVideoPlayer" controls playsinline loop class="modal-reel-video"></video>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Global play / pause handler for cards
+    function togglePlay(container) {
+        const video = container.querySelector('video');
+        const overlay = container.querySelector('.play-overlay');
+        const card = container.closest('.reel-card');
+        const playBtn = card.querySelector('.play-toggle-btn');
+
+        if (video.paused) {
+            // Pause all other playing videos first
+            document.querySelectorAll('.reel-player').forEach(v => {
+                if (v !== video && !v.paused) {
+                    v.pause();
+                    const otherContainer = v.closest('.reel-video-container');
+                    if (otherContainer) {
+                        otherContainer.querySelector('.play-overlay').style.opacity = '1';
+                        const otherBtn = otherContainer.closest('.reel-card').querySelector('.play-toggle-btn');
+                        if (otherBtn) otherBtn.innerHTML = '<i class="fas fa-play me-1"></i>Play';
+                    }
+                }
+            });
+
+            video.play();
+            overlay.style.opacity = '0';
+            if (playBtn) playBtn.innerHTML = '<i class="fas fa-pause me-1"></i>Pause';
+        } else {
+            video.pause();
+            overlay.style.opacity = '1';
+            if (playBtn) playBtn.innerHTML = '<i class="fas fa-play me-1"></i>Play';
+        }
+    }
+
+    function togglePlayBtn(btn) {
+        const card = btn.closest('.reel-card');
+        const container = card.querySelector('.reel-video-container');
+        togglePlay(container);
+    }
+
+    // Modal Player
+    let reelModalInstance = null;
+    function openFullscreenModal(videoUrl, caption) {
+        // Pause all card players
+        document.querySelectorAll('.reel-player').forEach(v => v.pause());
+        document.querySelectorAll('.play-overlay').forEach(o => o.style.opacity = '1');
+        document.querySelectorAll('.play-toggle-btn').forEach(b => b.innerHTML = '<i class="fas fa-play me-1"></i>Play');
+
+        const modalEl = document.getElementById('reelModal');
+        const modalVideo = document.getElementById('modalVideoPlayer');
+        const modalCaption = document.getElementById('modalCaption');
+
+        modalCaption.textContent = caption || 'AI Generated Reel';
+        modalVideo.src = videoUrl;
+
+        if (!reelModalInstance) {
+            reelModalInstance = new bootstrap.Modal(modalEl);
+        }
+        reelModalInstance.show();
+        modalVideo.play().catch(() => {});
+    }
+
+    function closeReelModal() {
+        const modalVideo = document.getElementById('modalVideoPlayer');
+        modalVideo.pause();
+        modalVideo.src = '';
+    }
+
+    document.getElementById('reelModal').addEventListener('hidden.bs.modal', function () {
+        closeReelModal();
+    });
+</script>
+{% endblock %}

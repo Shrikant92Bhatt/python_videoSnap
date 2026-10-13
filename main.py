@@ -68,7 +68,78 @@ def create():
 
 @app.route("/gallery")
 def gallery():
-    return render_template("gallery.html")
+    reels_dir = os.path.join(app.root_path, "static", "reels")
+    os.makedirs(reels_dir, exist_ok=True)
+
+    # Auto-sync any completed reels from user_uploads into static/reels if missing
+    upload_root = app.config['UPLOAD_FOLDER']
+    if os.path.exists(upload_root):
+        for folder_name in os.listdir(upload_root):
+            src_reel = os.path.join(upload_root, folder_name, "reel.mp4")
+            dest_reel = os.path.join(reels_dir, f"{folder_name}.mp4")
+            if os.path.isfile(src_reel) and not os.path.exists(dest_reel):
+                try:
+                    import shutil
+                    shutil.copy2(src_reel, dest_reel)
+                except Exception:
+                    pass
+
+    reels = []
+    for file in os.listdir(reels_dir):
+        if not file.lower().endswith(".mp4"):
+            continue
+
+        file_path = os.path.join(reels_dir, file)
+        reel_id = os.path.splitext(file)[0]
+        folder_path = os.path.join(upload_root, reel_id)
+
+        # Retrieve caption/text prompt
+        caption = "AI Generated Reel"
+        engine = None
+        if os.path.isdir(folder_path):
+            text_file = os.path.join(folder_path, "text.txt")
+            if os.path.exists(text_file):
+                try:
+                    with open(text_file, "r", encoding="utf-8") as tf:
+                        content = tf.read().strip()
+                        if content:
+                            caption = content
+                except Exception:
+                    pass
+
+            engine_file = os.path.join(folder_path, "engine.txt")
+            if os.path.exists(engine_file):
+                try:
+                    with open(engine_file, "r", encoding="utf-8") as ef:
+                        engine = ef.read().strip().lower()
+                except Exception:
+                    pass
+
+        try:
+            stat = os.stat(file_path)
+            mtime = stat.st_mtime
+            size_mb = round(stat.st_size / (1024 * 1024), 2)
+            from datetime import datetime
+            created_at = datetime.fromtimestamp(mtime).strftime("%b %d, %Y • %I:%M %p")
+        except Exception:
+            mtime = 0
+            size_mb = 0
+            created_at = "Recently"
+
+        reels.append({
+            "id": reel_id,
+            "filename": file,
+            "video_url": url_for("static", filename=f"reels/{file}"),
+            "caption": caption,
+            "engine": engine,
+            "created_at": created_at,
+            "size_mb": size_mb,
+            "timestamp": mtime
+        })
+
+    # Sort newest first
+    reels.sort(key=lambda x: x["timestamp"], reverse=True)
+    return render_template("gallery.html", reels=reels)
 
 @app.errorhandler(404)
 def not_found(e):
