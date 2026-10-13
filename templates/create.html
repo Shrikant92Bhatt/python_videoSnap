@@ -39,6 +39,26 @@
                 <div class="text-input-container">
                     <textarea class="text-input" id="textInput" name="text" placeholder="Enter your text to be added as voice here..." rows="4"></textarea>
                 </div>
+
+                <div class="engine-selection-container">
+                    <label class="engine-heading">Select Reel Engine:</label>
+                    <div class="engine-options">
+                        <label class="engine-option-label">
+                            <input type="radio" name="engine" value="ffmpeg" checked>
+                            <span class="engine-card">
+                                <span class="engine-title">⚡ FFmpeg</span>
+                                <span class="engine-subtitle">High speed, low memory (Recommended)</span>
+                            </span>
+                        </label>
+                        <label class="engine-option-label">
+                            <input type="radio" name="engine" value="moviepy">
+                            <span class="engine-card">
+                                <span class="engine-title">🎬 MoviePy</span>
+                                <span class="engine-subtitle">Python-based video processing</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
                 
                 <button type="submit" class="submit-btn" id="submitBtn">
                     Create Reel

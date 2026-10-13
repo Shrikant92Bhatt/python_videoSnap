@@ -35,6 +35,9 @@ def create():
                         files_to_save.append((file, filename))
 
         text_content = request.form.get("text", "").strip()
+        engine_choice = request.form.get("engine", "ffmpeg").strip().lower()
+        if engine_choice not in {"ffmpeg", "moviepy"}:
+            engine_choice = "ffmpeg"
 
         # Ensure at least one file is actually uploaded
         if not files_to_save:
@@ -52,6 +55,10 @@ def create():
         # Save user text input as text.txt
         with open(os.path.join(target_folder, "text.txt"), "w", encoding="utf-8") as f:
             f.write(text_content)
+
+        # Save engine preference as engine.txt
+        with open(os.path.join(target_folder, "engine.txt"), "w", encoding="utf-8") as f:
+            f.write(engine_choice)
 
         flash("Files and text uploaded successfully!", "success")
         return redirect(url_for("create"))
